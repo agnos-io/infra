@@ -1,0 +1,293 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "environment": {
+        "value": {
+          "name": "eht-qa-01",
+          "programmatic": "ehtqa01",
+          "location": "East US",
+          "subscription": "39f26c74-c7e5-4f2e-8473-d3ab2f40b61f",
+          "dbAccountName": "cosmos-eht-qa-01"
+        }
+      },
+      "auth0": {
+        "value": {
+          "clientId": "g5MyLTEJs1xgD5u02SJsym1sF0Ho3tcx",
+          "redirectUri": "https://eht-qa-01.agnos-development.com/callback",
+          "audience": "https://apim-eht-dev-all/",
+          "domain": "agnos-dev.auth0.com"
+        }
+      },
+      "webApps": {
+        "value": {
+          // common things across all web apps
+          "baseUrl": "eht-qa-01.agnos-development.com",
+          "dnszonesname": "agnos-development.com",
+          "globalConfigUrl": "https://shared.eht-qa-01.agnos-development.com/web-config.json",
+          "geoLocationUrl": "https://shared.eht-qa-01.agnos-development.com/geo-location",
+          "storageAccount": "stgwebappsehtqa01",
+          // this gets created by the arm template, but we need to write it to the javascript files on main.js
+          // it would be nice if we didn't have to have this here and could just look it up in the arm template
+          // and figure out a different way to deploy the web apps. 
+          "appInsightsKey": "62ed8fe7-f246-44fe-8a72-9f787e18ab00",
+          // an object per web app containing app specific variables
+          "cases": {
+            "webappName": "cases",
+            "hostName": "cases.eht-qa-01.agnos-development.com",
+            "cnamename": "cases.eht-qa-01",
+            "cnamealias": "eht-qa-01-cases.azureedge.net"
+          },
+          "providerDb": {
+            "webappName": "provider-db",
+            "hostName": "provider-db.eht-qa-01.agnos-development.com",
+            "cnamename": "provider-db.eht-qa-01",
+            "cnamealias": "eht-qa-01-provider-db.azureedge.net"
+          },
+          "main": {
+            "webappName": "main",
+            "hostName": "eht-qa-01.agnos-development.com",
+            "cnamename": "eht-qa-01",
+            "cnamealias": "eht-qa-01-main.azureedge.net"
+          },
+          "opsconfig": {
+            "webappName": "ops-config",
+            "hostName": "ops-config.eht-qa-01.agnos-development.com",
+            "cnamename": "ops-config.eht-qa-01",
+            "cnamealias": "eht-qa-01-ops-config.azureedge.net"
+          },
+          "intake": {
+            "webappName": "intake",
+            "hostName": "intake.eht-qa-01.agnos-development.com",
+            "cnamename": "intake.eht-qa-01",
+            "cnamealias": "eht-qa-01-intake.azureedge.net"
+          },
+          "outreach": {
+            "webappName": "outreach",
+            "hostName": "outreach.eht-qa-01.agnos-development.com",
+            "cnamename": "outreach.eht-qa-01",
+            "cnamealias": "eht-qa-01-outreach.azureedge.net"
+          },
+          "common": {
+            "webappName": "common"
+          },
+          "communication": {
+            "webappName": "client-services",
+            "hostName": "client-services.eht-qa-01.agnos-development.com",
+            "cnamename": "client-services.eht-qa-01",
+            "cnamealias": "eht-qa-01-client-services.azureedge.net"
+          }
+        }
+      },
+      // generally we think of apim as part of the domain services, but I think it warrants being a peer here
+      "apim": {
+        "value": {
+          "url": "https://apim-eht-qa-01.azure-api.net/",
+          "sku": "Developer",
+          "capacity": 1,
+          "subscription": "39f26c74-c7e5-4f2e-8473-d3ab2f40b61f",
+          "resourceGroup": "css-eht-infrastructure",
+          "serviceName": "apim-eht-qa-01",
+          //"apimSourcePath": "$(System.DefaultWorkingDirectory)/_apim/api-management"  // needs to override from release
+          "AllowCORSLocalhost": "True",
+          "authIssuer": "https://agnos-dev.auth0.com/",
+          "authAudience": "https://apim-eht-dev-all/",
+          "rmsPortal": {
+            "auth0Audience": "https://client-communications-rms-dev/"
+          }
+        }
+      },
+      "shared": {
+        "value": {
+          "cnamename": "shared.eht-qa-01", //cnamename
+          "cnamealias": "eht-qa-01-shared.azureedge.net", //cnamealias
+          "dnszonename": "agnos-development.com",
+          "customdomainsuffix": "-agnos-development-com",
+          "certname": "ops-config-eht-dev-04"
+        }
+      },
+      "domainServices": {
+        "value": {
+          // common things across all domain services
+          "sku": "Dynamic",
+          "serviceBusSKU": "Standard",
+          "skuCode": "Y1",
+          "workerSize": "0",
+          "workerSizeId": "0",
+          "numberOfWorkers": "1",
+          "vnet": {
+            "name": "AzureERDevCircuit-vnet",
+            "resourceGroup": "Infrastructure-eastus"
+          },
+          "autoscaleCapacity": {
+            "minimum": "1",
+            "maximum": "2",
+            "default": "1"
+          },
+          "cosmosSettings": {
+            "backupPolicy": {},
+            "isAutoScaleEnabled": "False",
+            "isGeoReplicationEnabled": "False",
+            "throughput": 400,
+            "enableAnalyticalStorage": "True",
+            "analyticalStorageTtl": 86400
+          },
+          "auditing": {
+            "name": "auditing",
+            "skuCode": "qLG7Q~Wg0AqfcYPiZiysoImaNeiFr2J_cMA10"
+          },
+          "salesforce": {
+            "name": "salesforce",
+            "appServiceskuCode": "S1",
+            "serviceBusSKU": "Standard",
+            "app": {
+              "id": "28cae787-99ab-4a58-95c3-9c78d0cd6acc",
+              "objectId": "6a67d809-4d94-495f-a4ed-87ac6e0b562a"
+            }
+          },
+          "email": {
+            "name": "email",
+            "skuCode": "Y1",
+            "queueName": "email",
+            "msGraph": {
+              "tenantId": "e9eaca6f-eb13-43c6-9284-85cc1a244bfe",
+              "clientId": "9367e852-fe0a-4832-b594-f070eb7d6fc5",
+              "clientSecret": "wpQ7Q~01Ad-~XGTT2llAxrd8xwWiRlKYRhmPf",
+              "userID": "a2895c5c-3138-4d61-a43f-cf6523b7ffa1"
+            }
+          },
+          "caseManagement": {
+            "name": "case-management",
+            "skuCode": "S1",
+            "isSalesforceEnabled": "True",
+            "phiStorage": {
+              "resourceGroup": "rg-shared-eht-alldev",
+              "name": "stgsharedphi",
+              "internalPath": "\\\\w12FLRFSV05\\internal-share",
+              "fileshareName": "internal-share",
+              "storageSyncService": "sss-eht-alldev"
+            }
+          },
+          "providerManagement": {
+            "name": "provider-management",
+            "eventsubscriberfunction": "ProviderQueueSubscriber",
+            "metricsWorfPath": "\\qa\\metrics\\providerdb",
+            "metricsSchedule": "0 0 3 * * *",
+            "skuCode": "S1"
+          },
+          "intake": {
+            "name": "intake",
+            "skuCode": "S1",
+            "serviceBusSKU": "Standard",
+            "isSalesforceEnabled": "True",
+            "metricsWorfPath": "\\qa\\metrics\\intake",
+            "removeWorkqueueSchedule": "0 */15 * * * *",
+            "removeWorkqueueDelay": "15"
+          },
+          "opsconfig": {
+            "name": "ops-config",
+            "skuCode": "Y1",
+            "msGraph": {
+              "tenantId": "e9eaca6f-eb13-43c6-9284-85cc1a244bfe",
+              "clientId": "2ffd660e-e111-47b1-ad32-54a84b73d186",
+              "clientSecret": "nFI7Q~w~z4ExJA8rzxH8XjHkBx9SyJ7-c1I8C"
+            }
+          },
+          "outreach": {
+            "name": "outreach",
+            "skuCode": "S1",
+            "eventsubscriberfunction": "OutreachEventSubscriber",
+            "InitializeWorkQueueSchedule": "0 0 9 * * *",
+            "UnClaimWorkItemsSchedule": "0 0 * * * *",
+            "ClearWorkQueueSchedule": "0 0 7 * * *",
+            "isSalesforceEnabled": "True",
+            "EscalateForUpdate": "false",
+            "DebugCaseLocationUpdate": "false",
+            "EnableCaseLocationUpdate": "true",
+            "EnableCaseRTLUpdate": "true",
+            "metricsWorfPath": "\\qa\\metrics\\outreach",
+            "metricsSchedule": "0 0 3 * * *"
+          },
+          "metadata": {
+            "name": "metadata"
+          },
+          "fax": {
+            "name": "fax"
+          },
+          "requestpackages": {
+            "name": "request-packages",
+            "skuCode": "S1",
+            "serviceBusSKU": "Standard",
+            "isSalesforceEnabled": "True",
+            "concordFax": {
+              "userId": "mbx58323249",
+              "pin": "zu5slnbtevu?my",
+              "endpointURL": "https://ws.concordfax.com/fax/v5",
+              "password": "zu5slnbtevu?my",
+              "userName": "james.tapp@agnostechnologies.com",
+              "overrideRecipientFaxNumber": "18448320833",
+              "overrideRecipientFaxNumberException": "5854391197"
+            },
+            "recipient": {
+              "name": "Patient Intake Group",
+              "company": "N/A",
+              "phone": "877-344-8999",
+              "address1": "250 Thruway Park Drive",
+              "address2": "",
+              "state": "NY",
+              "city": "West Henrietta",
+              "countryCode": "US",
+              "postalCode": "14586"
+            },
+            "fedexAccountNumber": "510087542",
+            "eventSubscriberFunction": "Request-Packages-Events",
+            "UPSAccountNumber": "7RE030",
+            "CIOXAccountNumber": "1425202",
+            "IODAccountNumber": "482066",
+            "IronPDFLicenseKey": "IRONPDF.agnosTECHNOLOGIES.IRO210319.8926.66142.913012-133E27085E-C2NJGM33FXWXH77-DJ6UPVEM3DJ7-4VUH7JKOQOGB-DAAVOX26LNNV-EHTM6YK5RAIY-3KXJ3N-LG2ZKJGDBJSEUA-ORG.ULTDDEV.1YR-Y2I3QO.RENEW.SUPPORT.20.MAR.2022",
+            "opfs": {
+              "bearerEP": "https://agnos-dev.auth0.com/oauth/token",
+              "clientId": "W2lIPMwMrVxMMxPLAXfchtOgBp8cF6Ev",
+              "clientSecret": "m3FRWwmXyyahbMLod1EGfX8CnL9rE9PsZsyE5U0DzlGOcwzihcWVg0E0AKP71Ux5",
+              "audience": "https://qa-next-opfs.net",
+              "opfsApiUrl": "https://rms-internal-api-dev-int.agnos-secure.com:8739/api/files?replace=true"
+            }
+          },
+          "fedex": {
+            "name": "fedex",
+            "account_number": "510087542",
+            "environment": "sandbox",
+            "key": "gPoBsawcxtgYhgpg",
+            "meter_number": "118552410",
+            "password": "dWx3HorLa0HCD3JjjDZp3Jscl",
+            "skuCode": "S1",
+            "azureApp": {
+              "keyVault": {
+                "clientId": "383ecbac-c064-4693-a9b0-8fc90dc76bbc",
+                "clientSecret": "rww7Q~zRmiKA5CvtTDDRoIcBi8Po1-.Pzra0B",
+                "objectId": "33387af5-7364-4fbd-88a6-10f44a475f33"
+              }
+            }
+          },
+          "communication": {
+            "name": "client-communication",
+            "skuCode": "S1",
+            "isSalesforceEnabled": "True",
+            "serviceBusSKU": "Standard"
+          },
+          "integrationHub": {
+            "name": "integration-hub",
+            "skuCode": "S1",
+            "isSalesforceEnabled": "True",
+            "serviceBusSKU": "Standard",
+            "rmsMessageApiEndpoint": "https://w12flrappv02-int.agnoscorp.net:9840/message"
+          },
+          "escalations": {
+            "name": "escalations",
+            "skuCode": "S1",
+            "serviceBusSKU": "Standard"
+          }
+        }
+      }
+    }
+  }

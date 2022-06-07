@@ -1,0 +1,83 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    
+    "applications": [
+      {
+        "id":"home",
+        "name":"Home",
+        "description":"The application which serves as the main entry point into the system.",
+        "entryUrl":"https://#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "main-app:access"
+      },
+      {
+        "id":"provider-db",
+        "name":"Provider DB",
+        "description":"The provider database is a centralized data store information about providers and their departments.",
+        "entryUrl":"https://provider-db.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "provider-db-app:access"
+      },
+      {
+        "id":"intake",
+        "name":"Intake",
+        "description":"Reconcile providers and their departments with locations on new cases and send the request for records.",
+        "entryUrl":"https://intake.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "intake-app:access"
+      },
+      {
+        "id":"outreach",
+        "name":"Outreach",
+        "description":"Outreach to providers on case locations where the requested records have not been received yet.",
+        "entryUrl":"https://outreach.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "outreach-app:access"
+      },
+      {
+        "id":"doc-qa",
+        "name":"Doc QA",
+        "description":"Review records received from providers, verifying the records are what was requested.",
+        "entryUrl":"https://#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "doc-qa-app:access"
+      },
+      {
+        "id":"ops-config",
+        "name":"Ops Config",
+        "description":"Configure the system for operational processing.",
+        "entryUrl":"https://ops-config.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "ops-config-app:access"
+      },
+      {
+        "id":"admin-portal",
+        "name":"Admin Portal",
+        "description":"Configure how the customer uses the RMS Portal",
+        "entryUrl":"https://admin-portal.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "admin-portal-app:access"
+      },
+      {
+        "id":"client-services",
+        "name":"Client Services",
+        "description":"Manage the communications with customers & operations",
+        "entryUrl":"https://client-services.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "client-services-app:access"
+      },
+      {
+        "id":"patient-auth",
+        "name":"Patient Authorizations",
+        "description":"Manage the request for patient authorizations",
+        "entryUrl":"https://patient-authorizations#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "patient-auth-app:access"
+      },
+      {
+        "id":"outbound-records",
+        "name":"Outbound Records",
+        "description":"Manage the delivery of records to the customers",
+        "entryUrl":"https://outbound-records.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "outbound-records-app:access"
+      },
+      {
+        "id":"cases",
+        "name":"Cases",
+        "description":"Access to case data",
+        "entryUrl":"https://cases.#{EnvironmentName}#.#{DnsZonesName}#/",
+        "permission": "cases-app:access"
+      }
+    ]
+  }

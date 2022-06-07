@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         
+        "ARMConnection": {
+            "value": "Agnos_Sandbox (39f26c74-c7e5-4f2e-8473-d3ab2f40b61f)"
+        },
+        "AUTH0_AUDIENCE": {
+            "value": "https://apim-eht-dev-all/"
+        },
+        "AUTH0_DOMAIN": {
+            "value": "agnos-dev.auth0.com"
+        },
+        "DnsResourceGroup": {
+            "value": "css-eht-infrastructure"
+        },
+        "DnsZonesName": {
+            "value": "css-eht-infrastructure"
+        },
+        "MS-GRAPH-CLIENT-ID": {
+            "value": "2ffd660e-e111-47b1-ad32-54a84b73d186"
+        },
+        "MS-GRAPH-CLIENT-SECRET": {
+            "value": "nFI7Q~w~z4ExJA8rzxH8XjHkBx9SyJ7-c1I8C"
+        },
+        "MS-GRAPH-TENANT-ID": {
+            "value": "e9eaca6f-eb13-43c6-9284-85cc1a244bfe"
+        },
+        "Subscription": {
+            "value": "39f26c74-c7e5-4f2e-8473-d3ab2f40b61f"
+        }
+    }
+}

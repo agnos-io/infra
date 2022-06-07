@@ -1,0 +1,462 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "environment": { "type": "object" },
+      "auth0": { "type": "object" },
+      "webApps": { "type": "object" },
+      "apim": { "type": "object" },
+      "shared": { "type": "object" },
+      "domainServices": { "type": "object" }
+    },
+    "variables": {
+      "content-storageAccount-name": "[concat('stgphi', parameters('environment').programmatic)]",
+      "content-container-provider-forms": "[concat('stgphi', parameters('environment').programmatic, '/default/provider-forms')]",
+      "content-container-provider-metrics": "[concat('stgphi', parameters('environment').programmatic, '/default/provider-metrics')]",
+      "content-case-files": "[concat('stgphi', parameters('environment').programmatic, '/default/case-files')]",
+      "content-container-request-packages": "[concat('stgphi', parameters('environment').programmatic, '/default/request-packages')]",
+      "content-container-outbound-fedex": "[concat('stgphi', parameters('environment').programmatic, '/default/outbound-fedex')]",
+      "content-container-outbound-usps": "[concat('stgphi', parameters('environment').programmatic, '/default/outbound-usps')]",
+      "content-container-outbound-ups": "[concat('stgphi', parameters('environment').programmatic, '/default/outbound-ups')]",
+      "content-container-outbound-manual-fax": "[concat('stgphi', parameters('environment').programmatic, '/default/outbound-manual-fax')]",
+      "content-container-outbound-fax": "[concat('stgphi', parameters('environment').programmatic, '/default/outbound-fax')]",
+      "content-container-intake": "[concat('stgphi', parameters('environment').programmatic, '/default/intake')]",
+      "content-container-outreach": "[concat('stgphi', parameters('environment').programmatic, '/default/outreach')]",
+      "content-container-patient-authorizations": "[concat('stgphi', parameters('environment').programmatic, '/default/patient-authorizations')]",
+      "appi-name": "[concat('appi-',  parameters('environment').name)]",
+      "services-storageAccount-name": "[concat('stgservices', parameters('environment').programmatic)]",
+      "services-blobServices-name": "[concat('stgservices', parameters('environment').programmatic, '/default')]",
+      "service-bus": {
+        "ns": "[concat('sbn-', parameters('environment').name)]",
+        "topics": {
+          "PdbProposals": "provider-proposals",
+          "SFCaseEvents": "case-events",
+          "SFCaseEventsCompleted": "case-events-completed",
+          "RMSAdminConfig": "rms-admin"
+        },
+        "apiVersion": "2017-04-01"
+      },
+      "isGeoReplicationEnabled": "[parameters('domainServices').cosmosSettings.isGeoReplicationEnabled]",
+      "cosmosPrimaryLocation": [
+        {
+          "locationName": "[parameters('environment').location]",
+          "failoverPriority": 0,
+          "isZoneRedundant": false
+        }
+      ],
+      "cosmosGeoLocations": [
+        {
+          "locationName": "[parameters('environment').location]",
+          "failoverPriority": 0,
+          "isZoneRedundant": false
+        },
+        {
+          "locationName": "West US",
+          "failoverPriority": 1,
+          "isZoneRedundant": false
+        }
+      ]
+    },
+    "resources": [
+      {
+        "type": "Microsoft.DocumentDB/databaseAccounts",
+        "apiVersion": "2020-04-01",
+        "name": "[concat('cosmos-', parameters('environment').name)]",
+        "location": "[parameters('environment').location]",
+        "kind": "GlobalDocumentDB",
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "properties": {
+          "publicNetworkAccess": "Enabled",
+          "enableAutomaticFailover": false,
+          "enableMultipleWriteLocations": false,
+          "isVirtualNetworkFilterEnabled": false,
+          "virtualNetworkRules": [],
+          "disableKeyBasedMetadataWriteAccess": false,
+          "enableFreeTier": false,
+          "enableAnalyticalStorage": "[bool(parameters('domainServices').cosmosSettings.enableAnalyticalStorage)]",
+          "databaseAccountOfferType": "Standard",
+          "consistencyPolicy": {
+            "defaultConsistencyLevel": "Session",
+            "maxIntervalInSeconds": 5,
+            "maxStalenessPrefix": 100
+          },
+          "locations": "[if(bool(variables('isGeoReplicationEnabled')), variables('cosmosGeoLocations'),variables('cosmosPrimaryLocation'))]",
+          "capabilities": [],
+          "ipRules": [],
+          "backupPolicy":"[parameters('domainServices').cosmosSettings.backupPolicy]"
+        }
+      },
+      {
+        "type": "Microsoft.Search/searchServices",
+        "apiVersion": "2020-03-13",
+        "name": "[concat('srch-', parameters('environment').name)]",
+        "location": "[parameters('environment').location]",
+        "sku": {
+          "name": "standard"
+        },
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "properties": {
+          "replicaCount": 1,
+          "partitionCount": 1,
+          "hostingMode": "Default",
+          "publicNetworkAccess": "Enabled",
+          "networkRuleSet": {
+            "ipRules": []
+          }
+        }
+      },
+      {
+        "name": "[variables('services-storageAccount-name')]",
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01",
+        "location": "[parameters('environment').location]",
+        "properties": {
+          "accessTier": "Hot",
+          "minimumTlsVersion": "TLS1_2",
+          "supportsHttpsTrafficOnly": true,
+          "allowBlobPublicAccess": true,
+          "networkAcls": {
+            "bypass": "AzureServices",
+            "defaultAction": "Allow",
+            "ipRules": []
+          }
+        },
+        "dependsOn": [],
+        "sku": {
+          "name": "Standard_RAGRS"
+        },
+        "kind": "StorageV2",
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "resources": [
+          {
+            "name": "[concat('default/', 'intake')]",
+            "type": "blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "dependsOn": [
+              "[variables('services-storageAccount-name')]"
+            ],
+            "properties": {
+              "metadata": {}
+            }
+          }
+        ]
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('services-blobServices-name')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('services-storageAccount-name'))]"
+        ],
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "sku": {
+          "name": "Standard_RAGRS",
+          "tier": "Standard"
+        },
+        "properties": {
+          "cors": {
+            "corsRules": []
+          },
+          "deleteRetentionPolicy": {
+            "enabled": false
+          }
+        }
+      },
+      {
+        "name": "[concat('atlas-', parameters('environment').name)]",
+        "type": "Microsoft.Maps/accounts",
+        "apiVersion": "2018-05-01",
+        "location": "global",
+        "tags": {
+        },
+        "sku": {
+          "name": "S0"
+        }
+      },
+      {
+        "apiVersion": "2015-05-01",
+        "name": "[variables('appi-name')]",
+        "type": "microsoft.insights/components",
+        "location": "[resourceGroup().location]",
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "properties": {
+          "Request_Source": "IbizaWebAppExtensionCreate"
+        }
+      },
+      {
+        "name": "[variables('content-storageAccount-name')]",
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2019-06-01",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "accessTier": "Hot",
+          "minimumTlsVersion": "TLS1_2",
+          "supportsHttpsTrafficOnly": true,
+          "allowBlobPublicAccess": true,
+          "networkAcls": {
+            "bypass": "AzureServices",
+            "defaultAction": "Allow",
+            "ipRules": []
+          }
+        },
+        "dependsOn": [],
+        "sku": {
+          "name": "Standard_RAGRS"
+        },
+        "kind": "StorageV2",
+        "tags": {
+          "environment": "[parameters('environment').Name]"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-provider-forms')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-provider-metrics')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-case-files')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-request-packages')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-outbound-fedex')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-outbound-usps')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-outbound-ups')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-outbound-manual-fax')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-outbound-fax')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-intake')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-outreach')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+        "apiVersion": "2019-06-01",
+        "name": "[variables('content-container-patient-authorizations')]",
+        "dependsOn": [
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('content-storageAccount-name'))]"
+        ],
+        "properties": {
+          "publicAccess": "None"
+        }
+      },
+      {
+        "type": "Microsoft.ServiceBus/namespaces",
+        "apiVersion": "[variables('service-bus').apiVersion]",
+        "name": "[variables('service-bus').ns]",
+        "location": "[resourceGroup().location]",
+        "sku": {
+          "name": "[parameters('domainServices').serviceBusSKU]"
+        },
+        "properties": {},
+        "resources": [
+          {
+            "type": "topics",
+            "apiVersion": "[variables('service-bus').apiVersion]",
+            "name": "[variables('service-bus').topics.PdbProposals]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[variables('service-bus').ns]"
+            ],
+            "properties": {
+              "defaultMessageTimeToLive": "P30D",
+              "maxSizeInMegabytes": 5120,
+              "requiresDuplicateDetection": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "enableBatchedOperations": false,
+              "supportOrdering": true,
+              "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+              "enablePartitioning": false,
+              "enableExpress": false
+            }
+          },
+          {
+            "type": "topics",
+            "apiVersion": "[variables('service-bus').apiVersion]",
+            "name": "[variables('service-bus').topics.SFCaseEvents]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[variables('service-bus').ns]"
+            ],
+            "properties": {
+              "defaultMessageTimeToLive": "P30D",
+              "maxSizeInMegabytes": 5120,
+              "requiresDuplicateDetection": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "enableBatchedOperations": false,
+              "supportOrdering": true,
+              "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+              "enablePartitioning": false,
+              "enableExpress": false
+            }
+          },
+          {
+            "type": "topics",
+            "apiVersion": "[variables('service-bus').apiVersion]",
+            "name": "[variables('service-bus').topics.SFCaseEventsCompleted]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[variables('service-bus').ns]"
+            ],
+            "properties": {
+              "defaultMessageTimeToLive": "P30D",
+              "maxSizeInMegabytes": 5120,
+              "requiresDuplicateDetection": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "enableBatchedOperations": false,
+              "supportOrdering": true,
+              "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+              "enablePartitioning": false,
+              "enableExpress": false
+            }
+          },
+          {
+            "type": "topics",
+            "apiVersion": "[variables('service-bus').apiVersion]",
+            "name": "[variables('service-bus').topics.RMSAdminConfig]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[variables('service-bus').ns]"
+            ],
+            "properties": {
+              "defaultMessageTimeToLive": "P30D",
+              "maxSizeInMegabytes": 5120,
+              "requiresDuplicateDetection": true,
+              "duplicateDetectionHistoryTimeWindow": "PT10M",
+              "enableBatchedOperations": false,
+              "supportOrdering": true,
+              "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+              "enablePartitioning": false,
+              "enableExpress": false
+            }
+          }
+        ]
+      },
+      {
+        "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+        "apiVersion": "[variables('service-bus').apiVersion]",
+        "name": "[concat(variables('service-bus').ns, '/RootManageSharedAccessKey')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.ServiceBus/namespaces', variables('service-bus').ns)]"
+        ],
+        "properties": {
+          "rights": [
+            "Listen",
+            "Manage",
+            "Send"
+          ]
+        }
+      }
+    ]
+  }

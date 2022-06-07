@@ -1,0 +1,73 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "environment": { "type": "object" },
+      "auth0": { "type": "object" },
+      "webApps": { "type": "object" },
+      "apim": { "type": "object" },
+      "shared": { "type": "object" },
+      "domainServices": { "type": "object" }
+    },
+    "variables": {
+      "namespace-name": "[concat('evh-', parameters('environment').name)]",
+      "ehub-name": "apim-request"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.EventHub/namespaces",
+        "apiVersion": "2018-01-01-preview",
+        "name": "[variables('namespace-name')]",
+        "location": "[parameters('environment').location]",
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "sku": {
+          "name": "Basic",
+          "tier": "Basic",
+          "capacity": 1
+        },
+        "properties": {
+          "zoneRedundant": false,
+          "isAutoInflateEnabled": false,
+          "maximumThroughputUnits": 0,
+          "kafkaEnabled": false
+        }
+      },
+      {
+        "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+        "apiVersion": "2017-04-01",
+        "name": "[concat(variables('namespace-name'), '/RootManageSharedAccessKey')]",
+        "location": "[parameters('environment').location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.EventHub/namespaces', variables('namespace-name'))]"
+        ],
+        "tags": {
+          "environment": "[parameters('environment').name]"
+        },
+        "properties": {
+          "rights": [
+            "Listen",
+            "Manage",
+            "Send"
+          ]
+        }
+      },
+      { // Event Hub
+        "type": "Microsoft.EventHub/namespaces/eventhubs",
+        "apiVersion": "2017-04-01",
+        "name": "[concat(variables('namespace-name'), '/',variables('ehub-name'))]",
+        "location": "[parameters('environment').location]",
+        "dependsOn": [
+          "[resourceId('Microsoft.EventHub/namespaces', variables('namespace-name'))]"
+        ],
+        "properties": {
+          "messageRetentionInDays": 1,
+          "partitionCount": 2,
+          "status": "Active"
+        }
+  
+      }
+  
+    ]
+  }

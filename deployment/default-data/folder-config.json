@@ -1,0 +1,106 @@
+{
+    "apiEndpoints": {
+        "patient-folder": "case-management/cases[?sort][&page][&page-size][&search]",
+        "request-package": "request-packages/packages[?sort][&page][&page-size][&location]",
+        "provider-form": "",
+        "staged-files": ""
+    },
+    "applications": [{
+        "name": "case-viewer",
+        "config": [{
+            "folderType": "patient-folder",
+            "folderName": "Patient Folder",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "request-package",
+            "folderName": "Request Packages",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "provider-form",
+            "folderName": "Provider Forms",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }]
+    }, {
+        "name": "intake",
+        "config": [{
+            "folderType": "patient-folder",
+            "folderName": "Patient Folder",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "request-package",
+            "folderName": "Request Packages",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "provider-form",
+            "folderName": "Provider Forms",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "staged-files",
+            "folderName": "Staged Files",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": true,
+            "delete": true
+        }]
+    }, {
+        "name": "outreach",
+        "config": [{
+            "folderType": "patient-folder",
+            "folderName": "Patient Folder",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "request-package",
+            "folderName": "Request Packages",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "provider-form",
+            "folderName": "Provider Forms",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": false,
+            "delete": false
+        }, {
+            "folderType": "staged-files",
+            "folderName": "Staged Files",
+            "visible": true,
+            "preview": true,
+            "download": true,
+            "upload": true,
+            "delete": true
+        }]
+    }]
+}

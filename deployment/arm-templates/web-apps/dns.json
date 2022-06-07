@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "environment": { "type": "object" },
+      "auth0": { "type": "object" },
+      "webApps": { "type": "object" },
+      "apim": { "type": "object" },
+      "shared": { "type": "object" },
+      "domainServices": { "type": "object" }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Network/dnszones/CNAME",
+        "apiVersion": "2018-05-01",
+        "name": "[concat(parameters('shared').dnszonename, '/', parameters('shared').cnamename)]",
+        "dependsOn": [],
+        "properties": {
+          "TTL": 3600,
+          "CNAMERecord": {
+            "cname": "[parameters('shared').cnamealias]"
+          },
+          "targetResource": {}
+        }
+      }
+    ]
+  }
